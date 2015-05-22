@@ -11,7 +11,7 @@ import LocalAuthentication
 import Dispatch
 import CoreImage
 
-public protocol LockViewControllerDelegate {
+@objc public protocol LockViewControllerDelegate {
 	func lockViewControllerAuthentication(controller: LockViewController, didSucced success: Bool)
 	func lockViewControllerDidSetup(controller: LockViewController, code: String)
 }
@@ -22,7 +22,7 @@ private enum CodeValidationResult {
 	case Wrong
 }
 
-public enum LockScreenMode {
+@objc public enum LockScreenMode: Int {
 	case Setup
 	case Authenticate
 }
