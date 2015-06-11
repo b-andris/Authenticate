@@ -74,16 +74,16 @@ private class Keypad: UIView {
 	}
 
 	private var digitButtons: [UIButton] = []
-	private let deleteButton = UIButton.buttonWithType(.System) as! UIButton
+	private let deleteButton = UIButton(type: .System) as UIButton
 	private var enteredCode = ""
 	private let textField = UITextField()
 	private var showWrongPINMessage = false
 
 	init() {
-		super.init(frame: CGRect.zeroRect)
+		super.init(frame: CGRect.zero)
 		let chars = ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⌫"]
 		for (var i = 0; i <= 9; i++) {
-			digitButtons.append(UIButton.buttonWithType(.System) as! UIButton)
+			digitButtons.append(UIButton(type: .System) as UIButton)
 			digitButtons[i].setTitle(chars[i], forState: .Normal)
 			digitButtons[i].tag = i
 			digitButtons[i].addTarget(self, action: "digitButtonPressed:", forControlEvents: .TouchUpInside)
@@ -111,8 +111,8 @@ private class Keypad: UIView {
 	}
 
 	@IBAction func deleteButtonPressed(button: UIButton) {
-		if count(enteredCode) > 0 {
-			let index = advance(enteredCode.endIndex, -1)
+		if enteredCode.characters.count > 0 {
+			let index = enteredCode.endIndex.advancedBy(-1)
 			enteredCode = enteredCode.substringToIndex(index)
 			updateTextField()
 		}
@@ -134,7 +134,7 @@ private class Keypad: UIView {
 			textField.placeholder = enterPrompt
 		}
 		var code = ""
-		for (var i = 0; i < count(enteredCode); i++) {
+		for (var i = 0; i < enteredCode.characters.count; i++) {
 			code += " ●"
 		}
 		textField.text = code
@@ -160,7 +160,7 @@ private class Keypad: UIView {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
+		super.init(coder: aDecoder)!
 	}
 }
 
@@ -249,7 +249,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 
 	private func validateCode(code: String) -> CodeValidationResult {
 		if mode == .Authenticate {
-			if count(code) < count(self.code) {
+			if code.characters.count < self.code.characters.count {
 				return .TooShort
 			} else if code == self.code {
 				if let del = delegate {
@@ -281,7 +281,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 				return .Wrong
 			}
 		} else {
-			if count(code) < codeLength {
+			if code.characters.count < codeLength {
 				return .TooShort
 			} else if isVerifying && code == self.code {
 				if let del = delegate {
@@ -311,7 +311,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 	}
 
 	required public init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
+		super.init(coder: aDecoder)!
 		transitioningDelegate = self
 	}
 
@@ -320,20 +320,19 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		keypad.callback = validateCode
 		let context = LAContext()
 		if allowsTouchID && mode == .Authenticate {
-			if context.canEvaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, error: nil) {
-				weak var weakSelf = self
-				context.evaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) -> Void in
-					if success {
-						if let strongSelf = weakSelf {
-							if let del = strongSelf.delegate {
-								del.lockViewControllerAuthentication(self, didSucced: true)
-							} else {
-								strongSelf.dismissViewControllerAnimated(true, completion: nil)
-							}
+			context.canEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, error:nil)
+			weak var weakSelf = self
+			context.evaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) ->Void in
+				if success {
+					if let strongSelf = weakSelf {
+						if let del = strongSelf.delegate {
+							del.lockViewControllerAuthentication(self, didSucced: true)
+						} else {
+							strongSelf.dismissViewControllerAnimated(true, completion: nil)
 						}
 					}
-				})
-			}
+				}
+			})
 		}
 		view.addSubview(background)
 		view.addSubview(keypad)
@@ -377,13 +376,13 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 }
 
 private class PresentController: NSObject, UIViewControllerAnimatedTransitioning {
-	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning) -> NSTimeInterval {
+	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning?) -> NSTimeInterval {
 		return 0.3
 	}
 
 	@objc func animateTransition(transitionContext: UIViewControllerContextTransitioning) {
 		let vc = transitionContext.viewControllerForKey(UITransitionContextToViewControllerKey)!
-		transitionContext.containerView().addSubview(vc.view)
+		transitionContext.containerView()!.addSubview(vc.view)
 		vc.view.alpha = 0
 		UIView.animateWithDuration(transitionDuration(transitionContext), animations: { () -> Void in
 			vc.view.alpha = 1
@@ -392,7 +391,7 @@ private class PresentController: NSObject, UIViewControllerAnimatedTransitioning
 }
 
 private class DismissController: NSObject, UIViewControllerAnimatedTransitioning {
-	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning) -> NSTimeInterval {
+	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning?) -> NSTimeInterval {
 		return 0.3
 	}
 
