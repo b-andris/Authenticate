@@ -80,7 +80,7 @@ private class Keypad: UIView {
 	private var showWrongPINMessage = false
 
 	init() {
-		super.init(frame: CGRect.zeroRect)
+		super.init(frame: CGRect.zero)
 		let chars = ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⌫"]
 		for (var i = 0; i <= 9; i++) {
 			digitButtons.append(UIButton(type: .System) as UIButton)
@@ -112,7 +112,7 @@ private class Keypad: UIView {
 
 	@IBAction func deleteButtonPressed(button: UIButton) {
 		if enteredCode.characters.count > 0 {
-			let index = advance(enteredCode.endIndex, -1)
+			let index = enteredCode.endIndex.advancedBy(-1)
 			enteredCode = enteredCode.substringToIndex(index)
 			updateTextField()
 		}
@@ -160,7 +160,7 @@ private class Keypad: UIView {
 	}
 
 	required init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
+		super.init(coder: aDecoder)!
 	}
 }
 
@@ -311,7 +311,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 	}
 
 	required public init(coder aDecoder: NSCoder) {
-		super.init(coder: aDecoder)
+		super.init(coder: aDecoder)!
 		transitioningDelegate = self
 	}
 
@@ -320,22 +320,19 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		keypad.callback = validateCode
 		let context = LAContext()
 		if allowsTouchID && mode == .Authenticate {
-			do {
-				try context.canEvaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics)
-				weak var weakSelf = self
-				context.evaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) -> Void in
-					if success {
-						if let strongSelf = weakSelf {
-							if let del = strongSelf.delegate {
-								del.lockViewControllerAuthentication(self, didSucced: true)
-							} else {
-								strongSelf.dismissViewControllerAnimated(true, completion: nil)
-							}
+			context.canEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, error:nil)
+			weak var weakSelf = self
+			context.evaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) ->Void in
+				if success {
+					if let strongSelf = weakSelf {
+						if let del = strongSelf.delegate {
+							del.lockViewControllerAuthentication(self, didSucced: true)
+						} else {
+							strongSelf.dismissViewControllerAnimated(true, completion: nil)
 						}
 					}
-				})
-			} catch _ {
-			}
+				}
+			})
 		}
 		view.addSubview(background)
 		view.addSubview(keypad)
