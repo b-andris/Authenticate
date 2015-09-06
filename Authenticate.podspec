@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "Authenticate"
-  s.version      = "1.0.2"
+  s.version      = "1.0.3"
   s.summary      = "A simple lockscreen view controller for iOS 8"
 
   s.description  = <<-DESC
