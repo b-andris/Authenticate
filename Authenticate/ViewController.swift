@@ -8,33 +8,33 @@
 
 import UIKit
 
-public class ViewController: UIViewController, LockViewControllerDelegate {
+open class ViewController: UIViewController, LockViewControllerDelegate {
 	var code = "0000"
 	
-	@IBAction func setup(sender: AnyObject) {
+	@IBAction func setup(_ sender: AnyObject) {
 		let lockVC = LockViewController()
-		lockVC.mode = .Setup
+		lockVC.mode = .setup
 		lockVC.delegate = self
-		presentViewController(lockVC, animated: true, completion: nil)
+		present(lockVC, animated: true, completion: nil)
 	}
-	@IBAction func authenticate(sender: UIButton) {
+	@IBAction func authenticate(_ sender: UIButton) {
 		let lockVC = LockViewController()
 		lockVC.code = code
 		lockVC.remainingAttempts = -1
 		lockVC.maxWait = 3
 		lockVC.delegate = self
-		presentViewController(lockVC, animated: true, completion: nil)
+		present(lockVC, animated: true, completion: nil)
 	}
 
-	public func lockViewControllerDidSetup(controller: LockViewController, code: String) {
+	open func lockViewControllerDidSetup(_ controller: LockViewController, code: String) {
 		self.code = code
-		dismissViewControllerAnimated(true, completion: nil)
+		dismiss(animated: true, completion: nil)
 	}
 
-	public func lockViewControllerAuthentication(controller: LockViewController, didSucced success: Bool) {
-		dismissViewControllerAnimated(true, completion: nil)
-		dispatch_async(dispatch_get_main_queue(), { () -> Void in
-			self.view.backgroundColor = success ? UIColor.greenColor() : UIColor.redColor()
+	open func lockViewControllerAuthentication(_ controller: LockViewController, didSucced success: Bool) {
+		dismiss(animated: true, completion: nil)
+		DispatchQueue.main.async(execute: { () -> Void in
+			self.view.backgroundColor = success ? UIColor.green : UIColor.red
 		})
 	}
 }

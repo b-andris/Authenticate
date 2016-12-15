@@ -12,19 +12,19 @@ import Dispatch
 import CoreImage
 
 @objc public protocol LockViewControllerDelegate {
-	func lockViewControllerAuthentication(controller: LockViewController, didSucced success: Bool)
-	func lockViewControllerDidSetup(controller: LockViewController, code: String)
+	func lockViewControllerAuthentication(_ controller: LockViewController, didSucced success: Bool)
+	func lockViewControllerDidSetup(_ controller: LockViewController, code: String)
 }
 
 private enum CodeValidationResult {
-	case OK
-	case TooShort
-	case Wrong
+	case ok
+	case tooShort
+	case wrong
 }
 
 @objc public enum LockScreenMode: Int {
-	case Setup
-	case Authenticate
+	case setup
+	case authenticate
 }
 
 private class Keypad: UIView {
@@ -40,15 +40,15 @@ private class Keypad: UIView {
 		}
 	}
 
-	var callback: (String) -> (CodeValidationResult) = {code -> CodeValidationResult in return .Wrong}
+	var callback: (String) -> (CodeValidationResult) = {code -> CodeValidationResult in return .wrong}
 	var timeUnits = ["Sec", "Min", "Hours", "Days", "Months", "Years"]
 	var wait: UInt = 0 {
 		didSet {
 			if wait > 0 {
 				for button in digitButtons {
-					button.enabled = false
+					button.isEnabled = false
 				}
-				deleteButton.enabled = false
+				deleteButton.isEnabled = false
 				if wait < 60 {
 					textField.placeholder = "\(wait) \(timeUnits[0])"
 				} else if wait < 60 * 60 {
@@ -65,43 +65,43 @@ private class Keypad: UIView {
 				textField.text = ""
 			} else {
 				for button in digitButtons {
-					button.enabled = true
+					button.isEnabled = true
 				}
-				deleteButton.enabled = true
+				deleteButton.isEnabled = true
 				updateTextField()
 			}
 		}
 	}
 
-	private var digitButtons: [UIButton] = []
-	private let deleteButton = UIButton(type: .System) as UIButton
-	private var enteredCode = ""
-	private let textField = UITextField()
-	private var showWrongPINMessage = false
+	fileprivate var digitButtons: [UIButton] = []
+	fileprivate let deleteButton = UIButton(type: .system) as UIButton
+	fileprivate var enteredCode = ""
+	fileprivate let textField = UITextField()
+	fileprivate var showWrongPINMessage = false
 
 	init() {
 		super.init(frame: CGRect.zero)
 		let chars = ["⓪", "①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⌫"]
-		for (var i = 0; i <= 9; i++) {
-			digitButtons.append(UIButton(type: .System) as UIButton)
-			digitButtons[i].setTitle(chars[i], forState: .Normal)
+		for i in 0 ... 9 {
+			digitButtons.append(UIButton(type: .system) as UIButton)
+			digitButtons[i].setTitle(chars[i], for: UIControlState())
 			digitButtons[i].tag = i
-			digitButtons[i].addTarget(self, action: "digitButtonPressed:", forControlEvents: .TouchUpInside)
+			digitButtons[i].addTarget(self, action: #selector(Keypad.digitButtonPressed(_:)), for: .touchUpInside)
 			addSubview(digitButtons[i])
 		}
-		deleteButton.setTitle(chars[10], forState: .Normal)
-		deleteButton.addTarget(self, action: "deleteButtonPressed:", forControlEvents: .TouchUpInside)
+		deleteButton.setTitle(chars[10], for: UIControlState())
+		deleteButton.addTarget(self, action: #selector(Keypad.deleteButtonPressed(_:)), for: .touchUpInside)
 		addSubview(textField)
-		textField.userInteractionEnabled = false
-		textField.textAlignment = .Center
+		textField.isUserInteractionEnabled = false
+		textField.textAlignment = .center
 		updateTextField()
 		addSubview(deleteButton)
 		layout()
 	}
 
-	@IBAction func digitButtonPressed(button: UIButton) {
+	@IBAction func digitButtonPressed(_ button: UIButton) {
 		enteredCode += "\(button.tag)"
-		if callback(enteredCode) == .Wrong {
+		if callback(enteredCode) == .wrong {
 			enteredCode = ""
 			showWrongPINMessage = true
 		} else {
@@ -110,10 +110,10 @@ private class Keypad: UIView {
 		updateTextField()
 	}
 
-	@IBAction func deleteButtonPressed(button: UIButton) {
+	@IBAction func deleteButtonPressed(_ button: UIButton) {
 		if enteredCode.characters.count > 0 {
-			let index = enteredCode.endIndex.advancedBy(-1)
-			enteredCode = enteredCode.substringToIndex(index)
+			let index = enteredCode.characters.index(enteredCode.endIndex, offsetBy: -1)
+			enteredCode = enteredCode.substring(to: index)
 			updateTextField()
 		}
 	}
@@ -124,7 +124,7 @@ private class Keypad: UIView {
 		updateTextField()
 	}
 
-	private func updateTextField() {
+	fileprivate func updateTextField() {
 		if wait > 0 {
 			return
 		}
@@ -134,25 +134,25 @@ private class Keypad: UIView {
 			textField.placeholder = enterPrompt
 		}
 		var code = ""
-		for (var i = 0; i < enteredCode.characters.count; i++) {
+		for _ in 0 ..< enteredCode.characters.count {
 			code += " ●"
 		}
 		textField.text = code
 	}
 
-	private func layout() {
+	fileprivate func layout() {
 		let elementWidth = bounds.width / 3
 		let elementHeight = bounds.height / 5
 		textField.frame = CGRect(x: 0, y: 0, width: bounds.width, height: elementHeight)
-		textField.font = UIFont.systemFontOfSize(min(elementWidth, elementHeight) * 0.5)
-		for (var i = 1; i <= 9; i++) {
-			digitButtons[i].frame = CGRect(x: (CGFloat(i) + 2) % 3 * elementWidth, y: floor((CGFloat(i) + 2) / 3) * elementHeight, width: elementWidth, height: elementHeight)
-			digitButtons[i].titleLabel?.font = UIFont.systemFontOfSize(min(elementWidth, elementHeight) * 0.9)
+		textField.font = UIFont.systemFont(ofSize: min(elementWidth, elementHeight) * 0.5)
+		for i in 1 ... 9 {
+			digitButtons[i].frame = CGRect(x: (CGFloat(i) + 2).truncatingRemainder(dividingBy: 3) * elementWidth, y: floor((CGFloat(i) + 2) / 3) * elementHeight, width: elementWidth, height: elementHeight)
+			digitButtons[i].titleLabel?.font = UIFont.systemFont(ofSize: min(elementWidth, elementHeight) * 0.9)
 		}
 		digitButtons[0].frame = CGRect(x: elementWidth, y: 4 * elementHeight, width: elementWidth, height: elementHeight)
-		digitButtons[0].titleLabel?.font = UIFont.systemFontOfSize(min(elementWidth, elementHeight) * 0.9)
+		digitButtons[0].titleLabel?.font = UIFont.systemFont(ofSize: min(elementWidth, elementHeight) * 0.9)
 		deleteButton.frame = CGRect(x: 2 * elementWidth, y: 4 * elementHeight, width: elementWidth, height: elementHeight)
-		deleteButton.titleLabel?.font = UIFont.systemFontOfSize(min(elementWidth, elementHeight) * 0.5)
+		deleteButton.titleLabel?.font = UIFont.systemFont(ofSize: min(elementWidth, elementHeight) * 0.5)
 	}
 
 	override func layoutSubviews() {
@@ -164,18 +164,18 @@ private class Keypad: UIView {
 	}
 }
 
-public class LockViewController: UIViewController, UIViewControllerTransitioningDelegate {
-	private var keypad: Keypad = Keypad()
-	private var isVerifying = false
-	private var isUpdatingWait = false
-	private var waitTime = 0.16
-	private var background = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.Light))
-	private var upBackground = UIView()
-	private var downBackground = UIView()
-	private var rightBackground = UIView()
-	private var leftBackground = UIView()
+open class LockViewController: UIViewController, UIViewControllerTransitioningDelegate {
+	fileprivate var keypad: Keypad = Keypad()
+	fileprivate var isVerifying = false
+	fileprivate var isUpdatingWait = false
+	fileprivate var waitTime = 0.16
+	fileprivate var background = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.light))
+	fileprivate var upBackground = UIView()
+	fileprivate var downBackground = UIView()
+	fileprivate var rightBackground = UIView()
+	fileprivate var leftBackground = UIView()
 
-	private var wait: UInt {
+	fileprivate var wait: UInt {
 		get {
 			return keypad.wait
 		}
@@ -187,17 +187,17 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		}
 	}
 
-	public var code: String = "0000"
-	public var reason: String = "Unlock " + (NSBundle.mainBundle().infoDictionary!["CFBundleName"] as! String)
-	public var allowsTouchID = true
-	public var mode = LockScreenMode.Authenticate
-	public var codeLength = 4
-	public var remainingAttempts = -1
-	public var maxWait: UInt = 30
+	open var code: String = "0000"
+	open var reason: String = "Unlock " + (Bundle.main.infoDictionary!["CFBundleName"] as! String)
+	open var allowsTouchID = true
+	open var mode = LockScreenMode.authenticate
+	open var codeLength = 4
+	open var remainingAttempts = -1
+	open var maxWait: UInt = 30
 
-	public var delegate: LockViewControllerDelegate?
+	open var delegate: LockViewControllerDelegate?
 
-	public var wrongCodeMessage: String {
+	open var wrongCodeMessage: String {
 		get {
 			return keypad.wrongCodeMessage
 		}
@@ -206,7 +206,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		}
 	}
 
-	public var enterPrompt = "Enter PIN" {
+	open var enterPrompt = "Enter PIN" {
 		didSet {
 			if !isVerifying {
 				keypad.enterPrompt = enterPrompt
@@ -214,7 +214,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		}
 	}
 
-	public var verifyPrompt = "Verify" {
+	open var verifyPrompt = "Verify" {
 		didSet {
 			if isVerifying {
 				keypad.enterPrompt = verifyPrompt
@@ -222,7 +222,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		}
 	}
 
-	public var timeUnits: [String] {
+	open var timeUnits: [String] {
 		get {
 			return keypad.timeUnits
 		}
@@ -231,44 +231,43 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		}
 	}
 
-	private func updateWait() {
+	fileprivate func updateWait() {
 		if wait > 0 {
 			isUpdatingWait = true
-			let time = dispatch_time(dispatch_time_t(DISPATCH_TIME_NOW), Int64(NSEC_PER_SEC))
 			weak var weakSelf = self
-			dispatch_after(time, dispatch_get_main_queue(), { () -> Void in
+			DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) {
 				if let strongSelf = weakSelf {
-					strongSelf.wait--
+					strongSelf.wait -= 1
 					strongSelf.updateWait()
 				}
-			})
+			}
 		} else {
 			isUpdatingWait = false
 		}
 	}
 
-	private func validateCode(code: String) -> CodeValidationResult {
-		if mode == .Authenticate {
+	fileprivate func validate(code: String) -> CodeValidationResult {
+		if mode == .authenticate {
 			if code.characters.count < self.code.characters.count {
-				return .TooShort
+				return .tooShort
 			} else if code == self.code {
 				if let del = delegate {
 					del.lockViewControllerAuthentication(self, didSucced: true)
 				} else {
-					dismissViewControllerAnimated(true, completion: nil)
+					dismiss(animated: true, completion: nil)
 				}
-				return .OK
+				return .ok
 			} else {
 				if remainingAttempts > 0 {
-					remainingAttempts--
+					remainingAttempts -= 1
 				}
 				if remainingAttempts == 0 {
 					if let del = delegate {
 						del.lockViewControllerAuthentication(self, didSucced: false)
 					} else {
-						dismissViewControllerAnimated(true, completion: nil)
+						dismiss(animated: true, completion: nil)
 					}
-					return .Wrong
+					return .wrong
 				}
 				if maxWait > 0 {
 					waitTime *= 2
@@ -278,28 +277,28 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 						wait = UInt(waitTime)
 					}
 				}
-				return .Wrong
+				return .wrong
 			}
 		} else {
 			if code.characters.count < codeLength {
-				return .TooShort
+				return .tooShort
 			} else if isVerifying && code == self.code {
 				if let del = delegate {
 					del.lockViewControllerDidSetup(self, code: code)
 				} else {
-					dismissViewControllerAnimated(true, completion: nil)
+					dismiss(animated: true, completion: nil)
 				}
-				return .OK
+				return .ok
 			} else if isVerifying {
 				isVerifying = false
 				keypad.enterPrompt = enterPrompt
-				return .Wrong
+				return .wrong
 			} else {
 				isVerifying = true
 				self.code = code
 				keypad.enterPrompt = verifyPrompt
 				keypad.reset()
-				return .OK
+				return .ok
 			}
 		}
 	}
@@ -307,7 +306,7 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 	init() {
 		super.init(nibName: nil, bundle: nil)
 		transitioningDelegate = self
-		modalPresentationStyle = .Custom
+		modalPresentationStyle = .custom
 	}
 
 	required public init(coder aDecoder: NSCoder) {
@@ -315,20 +314,20 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		transitioningDelegate = self
 	}
 
-	override public func viewWillAppear(animated: Bool) {
+	override open func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
-		keypad.callback = validateCode
+		keypad.callback = validate(code:)
 		let context = LAContext()
-		if allowsTouchID && mode == .Authenticate {
-			context.canEvaluatePolicy(LAPolicy.DeviceOwnerAuthenticationWithBiometrics, error:nil)
+		if allowsTouchID && mode == .authenticate {
+			context.canEvaluatePolicy(LAPolicy.deviceOwnerAuthenticationWithBiometrics, error:nil)
 			weak var weakSelf = self
-			context.evaluatePolicy(.DeviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) ->Void in
+			context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: { (success, error) ->Void in
 				if success {
 					if let strongSelf = weakSelf {
 						if let del = strongSelf.delegate {
 							del.lockViewControllerAuthentication(self, didSucced: true)
 						} else {
-							strongSelf.dismissViewControllerAnimated(true, completion: nil)
+							strongSelf.dismiss(animated: true, completion: nil)
 						}
 					}
 				}
@@ -337,10 +336,10 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		view.addSubview(background)
 		view.addSubview(keypad)
 
-		leftBackground.backgroundColor = UIColor.blackColor()
-		rightBackground.backgroundColor = UIColor.blackColor()
-		upBackground.backgroundColor = UIColor.blackColor()
-		downBackground.backgroundColor = UIColor.blackColor()
+		leftBackground.backgroundColor = UIColor.black
+		rightBackground.backgroundColor = UIColor.black
+		upBackground.backgroundColor = UIColor.black
+		downBackground.backgroundColor = UIColor.black
 
 		view.addSubview(leftBackground)
 		view.addSubview(rightBackground)
@@ -349,11 +348,11 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		setupView(view.bounds.size)
 	}
 
-	override public func viewWillTransitionToSize(size: CGSize, withTransitionCoordinator coordinator: UIViewControllerTransitionCoordinator) {
+	override open func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
 		setupView(size)
 	}
 
-	private func setupView(size: CGSize) {
+	fileprivate func setupView(_ size: CGSize) {
 		let elementSize = min(min(size.width / 3, size.height / 5), 100)
 		keypad.frame = CGRect(x: 0, y: 0, width: 3 * elementSize, height: 5 * elementSize)
 		keypad.center = CGPoint(x: size.width / 2, y: size.height / 2)
@@ -366,43 +365,43 @@ public class LockViewController: UIViewController, UIViewControllerTransitioning
 		downBackground.frame = CGRect(x: -maxSize, y: size.height, width: 3 * maxSize, height: maxSize)
 	}
 
-	public func animationControllerForPresentedController(presented: UIViewController, presentingController presenting: UIViewController, sourceController source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+	open func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 		return PresentController()
 	}
 
-	public func animationControllerForDismissedController(dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+	open func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
 		return DismissController()
 	}
 }
 
 private class PresentController: NSObject, UIViewControllerAnimatedTransitioning {
-	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning?) -> NSTimeInterval {
+	@objc func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
 		return 0.3
 	}
 
-	@objc func animateTransition(transitionContext: UIViewControllerContextTransitioning) {
-		let vc = transitionContext.viewControllerForKey(UITransitionContextToViewControllerKey)!
-		transitionContext.containerView()!.addSubview(vc.view)
+	@objc func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+		let vc = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to)!
+		transitionContext.containerView.addSubview(vc.view)
 		vc.view.alpha = 0
-		UIView.animateWithDuration(transitionDuration(transitionContext), animations: { () -> Void in
+		UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: { () -> Void in
 			vc.view.alpha = 1
-			}) { (finished) -> Void in transitionContext.completeTransition(finished)}
+			}, completion: { (finished) -> Void in transitionContext.completeTransition(finished)}) 
 	}
 }
 
 private class DismissController: NSObject, UIViewControllerAnimatedTransitioning {
-	@objc func transitionDuration(transitionContext: UIViewControllerContextTransitioning?) -> NSTimeInterval {
+	@objc func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
 		return 0.3
 	}
 
-	@objc func animateTransition(transitionContext: UIViewControllerContextTransitioning) {
-		let vc = transitionContext.viewControllerForKey(UITransitionContextFromViewControllerKey)!
+	@objc func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+		let vc = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.from)!
 		vc.view.alpha = 1
-		UIView.animateWithDuration(transitionDuration(transitionContext), animations: { () -> Void in
+		UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: { () -> Void in
 			vc.view.alpha = 0
-			}) { (finished) -> Void in
+			}, completion: { (finished) -> Void in
 				vc.view.removeFromSuperview()
 				transitionContext.completeTransition(finished)
-		}
+		}) 
 	}
 }
