@@ -111,9 +111,9 @@ private class Keypad: UIView {
 	}
 
 	@IBAction func deleteButtonPressed(_ button: UIButton) {
-		if enteredCode.characters.count > 0 {
-			let index = enteredCode.characters.index(enteredCode.endIndex, offsetBy: -1)
-			enteredCode = enteredCode.substring(to: index)
+		if enteredCode.count > 0 {
+			let index = enteredCode.index(enteredCode.endIndex, offsetBy: -1)
+			enteredCode = String(enteredCode[..<index])
 			updateTextField()
 		}
 	}
@@ -134,7 +134,7 @@ private class Keypad: UIView {
 			textField.placeholder = enterPrompt
 		}
 		var code = ""
-		for _ in 0 ..< enteredCode.characters.count {
+		for _ in 0 ..< enteredCode.count {
 			code += " ●"
 		}
 		textField.text = code
@@ -248,7 +248,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 
 	fileprivate func validate(code: String) -> CodeValidationResult {
 		if mode == .authenticate {
-			if code.characters.count < self.code.characters.count {
+			if code.count < self.code.count {
 				return .tooShort
 			} else if code == self.code {
 				if let del = delegate {
@@ -280,7 +280,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 				return .wrong
 			}
 		} else {
-			if code.characters.count < codeLength {
+			if code.count < codeLength {
 				return .tooShort
 			} else if isVerifying && code == self.code {
 				if let del = delegate {
