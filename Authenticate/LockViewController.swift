@@ -73,11 +73,11 @@ private class Keypad: UIView {
 		}
 	}
 
-	fileprivate var digitButtons: [UIButton] = []
-	fileprivate let deleteButton = UIButton(type: .system) as UIButton
-	fileprivate var enteredCode = ""
-	fileprivate let textField = UITextField()
-	fileprivate var showWrongPINMessage = false
+	private var digitButtons: [UIButton] = []
+	private let deleteButton = UIButton(type: .system) as UIButton
+	private var enteredCode = ""
+	private let textField = UITextField()
+	private var showWrongPINMessage = false
 
 	init() {
 		super.init(frame: CGRect.zero)
@@ -124,7 +124,7 @@ private class Keypad: UIView {
 		updateTextField()
 	}
 
-	fileprivate func updateTextField() {
+	private func updateTextField() {
 		if wait > 0 {
 			return
 		}
@@ -140,7 +140,7 @@ private class Keypad: UIView {
 		textField.text = code
 	}
 
-	fileprivate func layout() {
+	private func layout() {
 		let elementWidth = bounds.width / 3
 		let elementHeight = bounds.height / 5
 		textField.frame = CGRect(x: 0, y: 0, width: bounds.width, height: elementHeight)
@@ -164,18 +164,18 @@ private class Keypad: UIView {
 	}
 }
 
-open class LockViewController: UIViewController, UIViewControllerTransitioningDelegate {
-	fileprivate var keypad: Keypad = Keypad()
-	fileprivate var isVerifying = false
-	fileprivate var isUpdatingWait = false
-	fileprivate var waitTime = 0.16
-	fileprivate var background = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.light))
-	fileprivate var upBackground = UIView()
-	fileprivate var downBackground = UIView()
-	fileprivate var rightBackground = UIView()
-	fileprivate var leftBackground = UIView()
+public class LockViewController: UIViewController, UIViewControllerTransitioningDelegate {
+	private var keypad: Keypad = Keypad()
+	private var isVerifying = false
+	private var isUpdatingWait = false
+	private var waitTime = 0.16
+	private var background = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffectStyle.light))
+	private var upBackground = UIView()
+	private var downBackground = UIView()
+	private var rightBackground = UIView()
+	private var leftBackground = UIView()
 
-	fileprivate var wait: UInt {
+	private var wait: UInt {
 		get {
 			return keypad.wait
 		}
@@ -187,17 +187,17 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	open var code: String = "0000"
-	open var reason: String = "Unlock " + (Bundle.main.infoDictionary!["CFBundleName"] as! String)
-	open var allowsTouchID = true
-	open var mode = LockScreenMode.authenticate
-	open var codeLength = 4
-	open var remainingAttempts = -1
-	open var maxWait: UInt = 30
+	@objc public var code: String = "0000"
+	@objc public var reason: String = "Unlock " + (Bundle.main.infoDictionary!["CFBundleName"] as! String)
+	@objc public var allowsTouchID = true
+	@objc public var mode = LockScreenMode.authenticate
+	@objc public var codeLength = 4
+	@objc public var remainingAttempts = -1
+	@objc public var maxWait: UInt = 30
 
-	open var delegate: LockViewControllerDelegate?
+	@objc public var delegate: LockViewControllerDelegate?
 
-	open var wrongCodeMessage: String {
+	@objc public var wrongCodeMessage: String {
 		get {
 			return keypad.wrongCodeMessage
 		}
@@ -206,7 +206,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	open var enterPrompt = "Enter PIN" {
+	@objc public var enterPrompt = "Enter PIN" {
 		didSet {
 			if !isVerifying {
 				keypad.enterPrompt = enterPrompt
@@ -214,7 +214,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	open var verifyPrompt = "Verify" {
+	@objc public var verifyPrompt = "Verify" {
 		didSet {
 			if isVerifying {
 				keypad.enterPrompt = verifyPrompt
@@ -222,7 +222,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	open var timeUnits: [String] {
+	@objc public var timeUnits: [String] {
 		get {
 			return keypad.timeUnits
 		}
@@ -231,7 +231,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	fileprivate func updateWait() {
+	private func updateWait() {
 		if wait > 0 {
 			isUpdatingWait = true
 			weak var weakSelf = self
@@ -246,7 +246,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		}
 	}
 
-	fileprivate func validate(code: String) -> CodeValidationResult {
+	private func validate(code: String) -> CodeValidationResult {
 		if mode == .authenticate {
 			if code.count < self.code.count {
 				return .tooShort
@@ -352,7 +352,7 @@ open class LockViewController: UIViewController, UIViewControllerTransitioningDe
 		setupView(size)
 	}
 
-	fileprivate func setupView(_ size: CGSize) {
+	private func setupView(_ size: CGSize) {
 		let elementSize = min(min(size.width / 3, size.height / 5), 100)
 		keypad.frame = CGRect(x: 0, y: 0, width: 3 * elementSize, height: 5 * elementSize)
 		keypad.center = CGPoint(x: size.width / 2, y: size.height / 2)
